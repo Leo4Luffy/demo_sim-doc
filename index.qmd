@@ -4,22 +4,73 @@ filters:
   - webr
 ---
 
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+
+pacman::p_load(tibble, gt, dplyr)
+```
+
 ## Programa Simulped
 
 El objetivo de este programa es simular genotipos utilizando la misma estructura genealógica que la población fundadora. Con Simulped, la información genómica disponible se emplea para crear una generación base. Luego, los genotipos de esta generación base se utilizan para generar varias generaciones discretas (no solapadas) de X individuos mediante "gene-dropping", con apareamiento aleatorio y sin distinción de sexo. Finalmente, los genotipos de la última generación simulada se emplean para generar los genotipos de los individuos fundadores presentes en el pedigrí. Este programa también permite la selección de individuos a través del pedigrí, generando un carácter indefinido (agregado).
 
-A continuación, se puede descargar el archivo de parámetros del programa y su ejecutable.
+A continuación, se puede descargar el archivo de parámetros del programa y su ejecutable:
 
 <td>&#128046; <a href="Simulped/parameters.txt" class="export">Archivo de parámetros</a></td> <HD>
 
 <td>&#128046; <a href="Softwares/simulped.exe" class="export">Ejecutable</a></td> <br>
 
-A modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa.
+A modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa:
 
 ![](Imagenes/dir_replica_1.png)
 
 ## Paquete de `R` AlphaSimR
 
+En el paquete `AlphaSimR`, el ADN se representa como una serie de ceros (0) y unos (1). En este esquema, 0 indica un alelo ancestral, mientras que 1 representa un alelo derivado, es decir, un alelo que surgió por mutación del alelo ancestral. Esta secuencia de alelos se denomina haplotipo. Un individuo diploide, por lo tanto, tendrá dos haplotipos por cada cromosoma, como se muestra en el siguiente ejemplo:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+
+AH <- tribble(
+  ~'Haplotipos', ~'AH1', ~'AH2', ~'AH3', ~'AH4', ~'AH5', ~'AH6',
+  'Haplotipo 1', 0, 1, 1, 0, 0, 1,
+  'Haplotipo 2', 0, 0, 1, 1, 0, 0
+  )
+  
+AH |>
+  gt() |>
+  opt_table_lines() |>
+  tab_footnote(
+    footnote = 'AH1 significa alelos haplotípicos.',
+    locations = cells_column_labels(
+      columns = AH1
+      )
+    )
+```
+
+Luego, la suma de los dos alelos haplotípicos da lugar al genotipo en forma de dosificación alélica. La dosificación puede ser 0, 1 o 2, donde 0 significa que no se poseen alelos derivados, 1 indica la presencia de un alelo derivado y 2 indica que ambos alelos son derivados:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+
+AH |>
+  summarise(
+    across(
+      .cols = c('AH1':'AH6'),
+      .fns = sum,
+      na.rm = TRUE
+    )
+  ) |>
+  gt()
+```
+
+<!--NOTA: COOLOCAR AQUÍ QUE EL PROGRAMA SIMULPED DA LOS HAPLOTIPOS.-->
 
 ```{webr-r}
 fit = lm(mpg ~ am, data = mtcars)
