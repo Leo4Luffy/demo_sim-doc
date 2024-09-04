@@ -1,0 +1,28 @@
+---
+title: "Demostración de la simulación"
+filters:
+  - webr
+---
+
+## Programa Simulped
+
+El objetivo de este programa es simular genotipos utilizando la misma estructura genealógica que la población fundadora. Con Simulped, la información genómica disponible se emplea para crear una generación base. Luego, los genotipos de esta generación base se utilizan para generar varias generaciones discretas (no solapadas) de X individuos mediante "gene-dropping", con apareamiento aleatorio y sin distinción de sexo. Finalmente, los genotipos de la última generación simulada se emplean para generar los genotipos de los individuos fundadores presentes en el pedigrí. Este programa también permite la selección de individuos a través del pedigrí, generando un carácter indefinido (agregado).
+
+A continuación, se puede descargar el archivo de parámetros del programa y su ejecutable.
+
+<td>&#128046; <a href="Simulped/parameters.txt" class="export">Archivo de parámetros</a></td> <HD>
+
+<td>&#128046; <a href="Softwares/simulped.exe" class="export">Ejecutable</a></td> <br>
+
+A modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa.
+
+![](Imagenes/dir_replica_1.png)
+
+## Paquete de `R` AlphaSimR
+
+
+```{webr-r}
+fit = lm(mpg ~ am, data = mtcars)
+
+summary(fit)
+```

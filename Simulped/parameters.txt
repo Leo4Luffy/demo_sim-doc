@@ -1,0 +1,19 @@
+92177  nanim						!Se indica aquí el número de individuos en la genealogia.
+64519 4 1  ndat  nefe  nrand		!Se indica aquí el número de datos (de registros de Pdtte), el número de efectos (fijos+aleatorios-animal), y el número de efectos.
+113 2 6 5352				                !Se indica aquí los niveles de los efectos: Edad del individuo al destete, sexo del individuo, edad de la madre al nacimiento de su cría (en seis iniveles), grupos de comparación.
+92177  ngenot						!Se indica aquí el número de individuos a genotipar (si se quisiera todos los individuos se colocaría el número de individuos en la genealogía).
+PedDstt.txt						!Se indica aquí el nombre del archivo de la genealogía.
+ProdDstt.txt						!Se indica aquí el nombre del archivo de datos de producción.
+PedDstt.txt						!Se indica aquí los codigos de los individuos a genotipar.
+geno.txt map.txt 43421					
+2970  nbase							!Se indica aquí el número de individuos en la poblacion base.
+3  ngenera							!Se indica aquí el número de generaciones a simular.
+100  nangen					        	!Se inica aquí el número de individuos en cada una de las generaciones a simular.
+0.05								!Se indica aquí la probabilidad de que un marcador sea un QTL.
+1000000								!Se indica aquí el numero de pares de bases que suponen un 1% de recombinacion.
+400								!Se indica aquí la varianza aditiva (va).
+400								!Se indica aquí la varianza de efectos aleatorios. Tantas como nrand.
+1000								!Se indica aquí la varianza residual (ve).
+1000								!Se indica aquí la media fenotipica.
+4 								!Se indica aquí el número de categorias.
+0.00 0.10 0.20 0.30						!Se indica aquí la probabilidad de eliminación por categorias (0-1).

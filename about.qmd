@@ -1,0 +1,7 @@
+---
+title: "Acerca de Mí"
+---
+
+Soy [Tu Nombre], un(a) apasionado(a) de la ciencia de datos y la ilustración.
+
+En este sitio comparto mis trabajos y proyectos.

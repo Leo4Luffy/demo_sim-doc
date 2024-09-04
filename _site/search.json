@@ -1,0 +1,30 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Demostración de la simulación",
+    "section": "",
+    "text": "El objetivo de este programa es simular genotipos utilizando la misma estructura genealógica que la población fundadora. Con Simulped, la información genómica disponible se emplea para crear una generación base. Luego, los genotipos de esta generación base se utilizan para generar varias generaciones discretas (no solapadas) de X individuos mediante “gene-dropping”, con apareamiento aleatorio y sin distinción de sexo. Finalmente, los genotipos de la última generación simulada se emplean para generar los genotipos de los individuos fundadores presentes en el pedigrí. Este programa también permite la selección de individuos a través del pedigrí, generando un carácter indefinido (agregado).\nA continuación, se puede descargar el archivo de parámetros del programa y su ejecutable.\n\n🐮 Archivo de parámetros\n\n\n\n🐮 Ejecutable\n\n\nA modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa."
+  },
+  {
+    "objectID": "index.html#programa-simulped",
+    "href": "index.html#programa-simulped",
+    "title": "Demostración de la simulación",
+    "section": "",
+    "text": "El objetivo de este programa es simular genotipos utilizando la misma estructura genealógica que la población fundadora. Con Simulped, la información genómica disponible se emplea para crear una generación base. Luego, los genotipos de esta generación base se utilizan para generar varias generaciones discretas (no solapadas) de X individuos mediante “gene-dropping”, con apareamiento aleatorio y sin distinción de sexo. Finalmente, los genotipos de la última generación simulada se emplean para generar los genotipos de los individuos fundadores presentes en el pedigrí. Este programa también permite la selección de individuos a través del pedigrí, generando un carácter indefinido (agregado).\nA continuación, se puede descargar el archivo de parámetros del programa y su ejecutable.\n\n🐮 Archivo de parámetros\n\n\n\n🐮 Ejecutable\n\n\nA modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa."
+  },
+  {
+    "objectID": "index.html#paquete-de-r-alphasimr",
+    "href": "index.html#paquete-de-r-alphasimr",
+    "title": "Demostración de la simulación",
+    "section": "Paquete de R AlphaSimR",
+    "text": "Paquete de R AlphaSimR\n\nPlease enable JavaScript to experience the dynamic code cell content on this page."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "Acerca de Mí",
+    "section": "",
+    "text": "Soy [Tu Nombre], un(a) apasionado(a) de la ciencia de datos y la ilustración.\nEn este sitio comparto mis trabajos y proyectos."
+  }
+]

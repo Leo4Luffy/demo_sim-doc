@@ -1,0 +1,17 @@
+project:
+  type: website
+  title: " "
+
+website:
+  navbar:
+    background: "white"
+    text: "black"
+
+format:
+  html:
+    theme: darkish.scss
+    #css: styles.css
+    toc: true  # Activa la tabla de contenidos
+    toc-location: left  # Ubica la tabla de contenidos a la izquierda
+    toc-depth: 2  # Especifica la profundidad de los encabezados en la tabla de contenidos (ajustable)
+    toc-title: "Contenido"  # Título de la tabla de contenidos
