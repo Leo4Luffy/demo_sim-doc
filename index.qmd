@@ -9,7 +9,7 @@ filters:
 #| eval: true
 #| warning: false
 
-pacman::p_load(tibble, gt, dplyr)
+pacman::p_load(tibble, gt, dplyr, AlphaSimR)
 ```
 
 ## Programa Simulped
@@ -27,6 +27,17 @@ A modo de ejemplo, se puede observar el directorio de trabajo para la primera r�
 ![](Imagenes/dir_replica_1.png)
 
 ## Paquete de `R` AlphaSimR
+
+El paquete `AlphaSimR` puede instalarse y usarse desde el `R` mediante:
+
+```{r}
+#| echo: true
+#| eval: false
+#| warning: false
+
+install.packages('AlphaSimR')
+library(AlphaSimR)
+```
 
 En el paquete `AlphaSimR`, el ADN se representa como una serie de ceros (0) y unos (1). En este esquema, 0 indica un alelo ancestral, mientras que 1 representa un alelo derivado, es decir, un alelo que surgió por mutación del alelo ancestral. Esta secuencia de alelos se denomina haplotipo. Un individuo diploide, por lo tanto, tendrá dos haplotipos por cada cromosoma, como se muestra en el siguiente ejemplo:
 
