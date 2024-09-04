@@ -81,7 +81,7 @@ AH |>
   gt()
 ```
 
-`AlphaSimR` permite utilizar datos de genotipo como entrada, representados en forma de alelos haplotípicos. Una descripción detallada de este proceso puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). Por lo tanto, las salidas del programa Simulped (específicamente, *** haplotot_sim1.txt *** y *** haplotot_sim2.txt *** anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.<!--NOTA: COLOCAR TAMBIEN QUE SE NECESITA EL MAPA GENETICO Y EL PEDIGRÍ-->
+`AlphaSimR` permite utilizar datos de genotipo como entrada, representados en forma de alelos haplotípicos, además del pedigrí y del mapa genético. Una descripción detallada de este proceso puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.<!--NOTA: COLOCAR TAMBIEN QUE SE NECESITA EL MAPA GENETICO Y EL PEDIGRÍ-->
 
 ```{webr-r}
 fit = lm(mpg ~ am, data = mtcars)
