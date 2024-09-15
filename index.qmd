@@ -9,7 +9,7 @@ filters:
 #| eval: true
 #| warning: false
 
-pacman::p_load(tibble, gt, dplyr, AlphaSimR, here)
+pacman::p_load(tibble, gt, dplyr, AlphaSimR, here, ggplot2, patchwork)
 ```
 
 ## Programa Simulped
@@ -20,7 +20,7 @@ A continuación, se puede descargar el archivo de parámetros del programa y su 
 
 <td>&#128046; <a href="Simulped/parameters.txt" class="export">Archivo de parámetros</a></td> <HD>
 
-<td>&#128046; <a href="Softwares/simulped.exe" class="export">Ejecutable</a></td> <br>
+<!--<td>&#128046; <a href="Softwares/simulped.exe" class="export">Ejecutable</a></td> <br>-->
 
 A modo de ejemplo, se puede observar el directorio de trabajo para la primera réplica generado por este programa:
 
@@ -76,11 +76,11 @@ SP$setSexes('yes_sys')
 
 ## 3. Una vez establecido los parámetros de simulación globales y definido el carácter, se simula (o crea) a continuación los individuos de la población base a partir de los haplotipos fundadores ----
 
-pop <- newPop(founderPop)
-#print(pop)
+basePop <- newPop(founderPop)
+#print(basePop)
 ```
 
-`AlphaSimR` permite utilizar datos de genotipo como entrada, representados en forma de alelos haplotípicos, además del pedigrí y del mapa genético. Una descripción detallada de este proceso puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.
+`AlphaSimR` utiliza datos de genotipo como entrada, representados en forma de alelos haplotípicos. Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.
 
 ::: {.callout-caution}
 ## Haplotipos en AlphaSImR
@@ -141,7 +141,7 @@ AH_grupos |>
   select(-Grupos)
 ```
 
-
+`AlphaSimR` también utiliza el pedigrí, el mapa genético y los efectos de los QTLs. Una descripción detallada del proceso de importación de datos externos a AlphaSimR puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). A continuación, se muestran los QTLs y sus efectos:
 
 ```{r}
 #| echo: false
@@ -161,9 +161,307 @@ DT::datatable(data = QTLsMap,
 
 
 
+```{r}
+#| echo: true
+#| eval: false
+#| warning: false
+#| label: Creación de la población fundadora, creación del objeto de clase SimParam (SP) e importación de efectos de QTLs.
 
-```{webr-r}
-fit = lm(mpg ~ am, data = mtcars)
+founderPop <- importHaplo(
+  haplo = marHap,
+  genMap = genMap,
+  ped = ped,
+  ploidy = 2
+  )
 
-summary(fit)
+SP <- SimParam$new(founderPop)
+
+SP$importTrait(
+  markerNames = QTLsEffects$id,
+  addEff = QTLsEffects$effect,
+  name = 'Agregado_PD'
+  )
+
+SP$setSexes('yes_sys')
 ```
+
+
+
+```{r}
+#| echo: true
+#| eval: false
+#| warning: false
+#| label: Simulación de los individuos de la población base 1.
+
+basePop <- newPop(founderPop)
+
+str(basePop, max.level = 2)
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Simulación de los individuos de la población base 2.
+
+str(basePop, max.level = 2)
+```
+
+#### a. Población base (o generación reciente)
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de los valores mejorantes de la población base.
+#| fig.width: 6
+#| fig.height: 6
+
+ggplot(data = as_tibble(gv(basePop)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = NULL, x = 'Valores mejorantes', y = 'Frecuencia') +
+  theme_bw()
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la varianza genética aditiva de la población base.
+
+varG(basePop)
+```
+
+
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población base 1.
+
+basePop <- setPheno(
+  basePop,
+  h2 = 0.28
+  )
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población base 2.
+#| fig.width: 6
+#| fig.height: 6
+
+tibble(
+  ID = basePop@id,
+  Fenotipos = pheno(basePop)[, 1]
+  )
+
+plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = NULL, x = 'Valores fenotípicos', y = 'Frecuencia') +
+  theme_bw()
+
+print(plot_basePop)
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la media fenotípica de la población base.
+
+meanP(basePop)
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la varianza fenotípica de la población base.
+
+varP(basePop)
+```
+
+#### b. Población mejorada (una sola generación)
+
+
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Selección de individuos (machos y hembras) basada en valores genéticos estimados (GEBVs)
+
+Sires <- selectInd(
+  pop = basePop, nInd = 150,
+  use = 'gv', sex = 'M', selectTop = TRUE
+  )
+Dams <- selectInd(
+  pop = basePop, nInd = 3000,
+  use = 'gv', sex = 'F', selectTop = TRUE
+  )
+
+gen1 <- randCross2(
+  males = Sires, 
+  females = Dams,
+  nCrosses = 3000, 
+  nProgeny = 1
+  )
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de los valores mejorantes de la población mejorada.
+#| fig.width: 6
+#| fig.height: 6
+
+ggplot(data = as_tibble(gv(gen1)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
+  labs(title = NULL, x = 'Valores mejorantes', y = 'Frecuencia') +
+  theme_bw()
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la varianza genética aditiva de la población mejorada.
+
+varG(gen1)
+```
+
+
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población mejorada 1.
+
+gen1 <- setPheno(
+  gen1,
+  h2 = 0.28
+  )
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población mejorada 2.
+#| fig.width: 6
+#| fig.height: 6
+
+tibble(
+  ID = gen1@id,
+  Fenotipos = pheno(gen1)[, 1]
+  )
+
+plot_gen1 <- ggplot(data = as_tibble(pheno(gen1)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
+  labs(title = NULL, x = 'Valores fenotípicos', y = 'Frecuencia') +
+  xlim(range(pheno(basePop))) +
+  theme_bw()
+
+(plot_basePop) / (plot_gen1)
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la media fenotípica de la población mejorada.
+
+meanP(gen1)
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la varianza fenotípica de la población mejorada.
+
+varP(gen1)
+```
+
+#### c. Parámetros de comparación en ambas poblaciones
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Parámetros en población base y mejorada.
+
+tibble(
+  `Parámetro|Réplica` = c(
+    'μₚ',
+    'σ²ₐ',
+    'σ²ₚ',
+    'F',
+    'μₚ',
+    'σ²ₐ',
+    'σ²ₚ',
+    'F',
+    'ΔG',
+    'Precisión'
+    ),
+  `Réplica 1` = c(-21.23, 324.83, 1157.24, -0.02, 23.50, 167.65, 1003.59, 44.27, 0.42, 0.001),
+  `Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 47.15, 0.41, 0.001),
+  `Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 47.33, 0.41, 0.001),
+  `Réplica 4` = c(-35.26, 463.50, 1644.34, -0.02, 18.06, 221.36, 1457.38, 54.42, 0.40, 0.0003),
+  `Réplica 5` = c(23.80, 417.07, 1478.78, -0.02, 72.48, 221.50, 1317.98, 50.16, 0.43, 0.001),
+  `Réplica 6` = c(22.38, 465.94, 1672.25, -0.02, 75.72, 226.46, 1456.74, 53.77, 0.40, 0.001),
+  `Réplica 7` = c(-8.23, 534.73, 1910.08, -0.02, 47.55, 275.29, 1640.63, 55.87, 0.38, 0.001),
+  `Réplica 8` = c(-24.75, 290.86, 1035.77, -0.02, 20.02, 171.85, 902.35, 43.64, 0.43, 0.001),
+  `Réplica 9` = c(-10.17, 316.38, 1125.35, -0.02, 34.05, 172.43, 1007.28, 44.53, 0.42, 0.001),
+  `Réplica 10` = c(-19.43, 392.42, 1411.05, -0.02, 29.33, 200.64, 1184.29, 48.16, 0.42, 0.001)
+  ) |>
+  gt(rowname_col = 'Parámetro|Réplica') |>
+  opt_table_lines() |>
+  tab_row_group(
+    label = 'Población mejorada',
+    rows = c(5:10)
+    ) |>
+  tab_row_group(
+    label = 'Población base',
+    rows = c(1:4)
+    ) |>
+  tab_footnote(
+    footnote = 'Se calculó el progreso genético como la diferencia en la media de los valores genéticos entre la población base y la mejorada.',
+    locations = cells_stub(rows = 'ΔG')) |>
+  tab_footnote(
+    footnote = 'Se calculó la precisión como la correlación entre los valores genéticos y los valores fenotípicos.',
+    locations = cells_stub(rows = 'Precisión')) |>
+  tab_footnote(
+    footnote = 'Se calculó el coeficiente de consanguinidad basado en el genoma, que compara la cantidad de homocigosis observada en el genoma con lo esperado.',
+    locations = cells_stub(rows = 'F'))
+```
+
+<!--
+```{webr-r}
+
+```
+-->
