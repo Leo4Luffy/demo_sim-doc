@@ -9,7 +9,7 @@ filters:
 #| eval: true
 #| warning: false
 
-pacman::p_load(tibble, gt, dplyr, AlphaSimR)
+pacman::p_load(tibble, gt, dplyr, AlphaSimR, here)
 ```
 
 ## Programa Simulped
@@ -39,49 +39,128 @@ install.packages('AlphaSimR')
 library(AlphaSimR)
 ```
 
-En el paquete `AlphaSimR`, el ADN se representa como una serie de ceros (0) y unos (1). En este esquema, 0 indica un alelo ancestral, mientras que 1 representa un alelo derivado, es decir, un alelo que surgió por mutación del alelo ancestral. Esta secuencia de alelos se denomina haplotipo. Un individuo diploide, por lo tanto, tendrá dos haplotipos por cada cromosoma, como se muestra en el siguiente ejemplo:
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Establecimiento de parámetros de simulación en la primera réplica.
+
+###########
+# Replica 1
+###########
+
+## 1. Se crea a continuación un objeto de clase SimParam denominado como "SP". Este contiene parámetros de simulación globales ----
+
+founderPop <- readRDS(here(file = 'AlphaSimR/Dato/replica_1/founderPop.rds'))
+
+#print(founderPop)
+
+SP <- SimParam$new(founderPop)
+
+## 2. Luego se importan los efectos de los QTLs y se asigna el sexo a los individuos ----
+
+QTLsEffects <- read.table(here(file = 'AlphaSimR/Dato/replica_1/qtlmap.txt'))
+colnames(QTLsEffects) <- c('id', 'chromosome', 'position', 'effect')
+QTLsMap <- QTLsEffects[,c('id', 'effect')]
+#dim_desc(x = QTLsEffects)
+
+SP$importTrait(
+  markerNames = QTLsEffects$id,
+  addEff = QTLsEffects$effect,
+  name = 'Agregado_PD'
+  )
+
+#SP$traits
+
+SP$setSexes('yes_sys')
+
+## 3. Una vez establecido los parámetros de simulación globales y definido el carácter, se simula (o crea) a continuación los individuos de la población base a partir de los haplotipos fundadores ----
+
+pop <- newPop(founderPop)
+#print(pop)
+```
+
+`AlphaSimR` permite utilizar datos de genotipo como entrada, representados en forma de alelos haplotípicos, además del pedigrí y del mapa genético. Una descripción detallada de este proceso puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.
+
+::: {.callout-caution}
+## Haplotipos en AlphaSImR
+
+En el paquete `AlphaSimR`, el ADN se representa como una serie de ceros (0) y unos (1). En este esquema, 0 indica un alelo ancestral, mientras que 1 representa un alelo derivado, es decir, un alelo que surgió por mutación del alelo ancestral. Esta secuencia de alelos se denomina haplotipo. Un individuo diploide, por lo tanto, tendrá dos haplotipos por cada cromosoma:
+:::
 
 ```{r}
 #| echo: false
 #| eval: true
 #| warning: false
+#| label: Observación de haplotipos en la primera réplica.
 
-AH <- tribble(
-  ~'Haplotipos', ~'AH1', ~'AH2', ~'AH3', ~'AH4', ~'AH5', ~'AH6',
-  'Haplotipo 1', 0, 1, 1, 0, 0, 1,
-  'Haplotipo 2', 0, 0, 1, 1, 0, 0
+###########
+# Replica 1
+###########
+
+AH <- tibble(
+  '1' = c(1, 1, 0, 0, 1, 1, 0, 0),
+  '2' = c(0, 1, 0, 0, 0, 1, 0, 0),
+  '3' = c(1, 1, 0, 1, 1, 1, 0, 1),
+  '4' = c(0, 0, 1, 0, 0, 0, 1, 1),
+  '5' = c(0, 0, 1, 0, 1, 0, 1, 0),
+  '6' = c(0, 0, 0, 0, 0, 0, 0, 1),
+  '7' = c(0, 0, 0, 0, 0, 0, 0, 0),
+  '8' = c(1, 0, 0, 1, 0, 0, 0, 1)
   )
-  
-AH |>
-  gt() |>
-  opt_table_lines() |>
-  tab_footnote(
-    footnote = 'AH1 significa alelos haplotípicos.',
-    locations = cells_column_labels(
-      columns = AH1
-      )
-    )
+print(AH) # Se observan los haplotipos de cuatro individuos.
 ```
+
+::: {.callout-caution}
+## Genotipos en AlphaSImR
 
 Luego, la suma de los dos alelos haplotípicos da lugar al genotipo en forma de dosificación alélica. La dosificación puede ser 0, 1 o 2, donde 0 significa que no se poseen alelos derivados, 1 indica la presencia de un alelo derivado y 2 indica que ambos alelos son derivados:
+:::
 
 ```{r}
 #| echo: false
 #| eval: true
 #| warning: false
+#| label: Observación de genotipos en la primera réplica.
 
-AH |>
+###########
+# Replica 1
+###########
+
+AH_grupos <- AH |>
+  dplyr::mutate(Grupos = rep(1:(n()/2), each = 2))  # Se crear una columna de grupos de cada 2 filas.
+
+AH_grupos |>
+  group_by(Grupos) |>
   summarise(
     across(
-      .cols = c('AH1':'AH6'),
-      .fns = sum,
-      na.rm = TRUE
+      .cols = c(1:8),
+      .fns = sum
     )
-  ) |>
-  gt()
+  ) |> # Se observan los genotipos de cuatro individuos.
+  select(-Grupos)
 ```
 
-`AlphaSimR` permite utilizar datos de genotipo como entrada, representados en forma de alelos haplotípicos, además del pedigrí y del mapa genético. Una descripción detallada de este proceso puede encontrarse [aquí](https://github.com/gaynorr/AlphaSimR_Examples/blob/master/misc/ASR_ImportExternalData.R). Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.<!--NOTA: COLOCAR TAMBIEN QUE SE NECESITA EL MAPA GENETICO Y EL PEDIGRÍ-->
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Efectos de los QTLs.
+
+DT::datatable(data = QTLsMap,
+  options = list(
+    searching = FALSE,    # Se elimina la barra de búsqueda.
+    pageLength = 8,       # Se muestran 8 filas por página.
+    lengthChange = FALSE  # Se elimina la opción para cambiar el número de filas mostradas.
+    ),
+  class = 'compact'       # Se hace la tabla más compacta
+  )
+```
+
+
+
 
 ```{webr-r}
 fit = lm(mpg ~ am, data = mtcars)
