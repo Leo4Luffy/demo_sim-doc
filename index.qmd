@@ -16,7 +16,7 @@ pacman::p_load(tibble, gt, dplyr, AlphaSimR, here, ggplot2, patchwork)
 
 El objetivo de este programa es simular genotipos utilizando la misma estructura genealógica que la población fundadora. Con Simulped, la información genómica disponible se emplea para crear una generación base. Luego, los genotipos de esta generación base se utilizan para generar varias generaciones discretas (no solapadas) de X individuos mediante "gene-dropping", con apareamiento aleatorio y sin distinción de sexo. Finalmente, los genotipos de la última generación simulada se emplean para generar los genotipos de los individuos fundadores presentes en el pedigrí. Este programa también permite la selección de individuos a través del pedigrí, generando un carácter indefinido (agregado).
 
-A continuación, se puede descargar el archivo de parámetros del programa y su ejecutable:
+A continuación, se puede descargar el archivo de parámetros del programa<!-- y su ejecutable-->:
 
 <td>&#128046; <a href="Simulped/parameters.txt" class="export">Archivo de parámetros</a></td> <HD>
 
@@ -83,7 +83,7 @@ basePop <- newPop(founderPop)
 `AlphaSimR` utiliza datos de genotipo como entrada, representados en forma de alelos haplotípicos. Por lo tanto, las salidas del programa Simulped (específicamente, __haplotot_sim1.txt__ y __haplotot_sim2.txt__ anteriomente mostrados en la primera imagen) pueden ser utilizadas por este paquete.
 
 ::: {.callout-caution}
-## Haplotipos en AlphaSImR
+## Haplotipos en AlphaSimR
 
 En el paquete `AlphaSimR`, el ADN se representa como una serie de ceros (0) y unos (1). En este esquema, 0 indica un alelo ancestral, mientras que 1 representa un alelo derivado, es decir, un alelo que surgió por mutación del alelo ancestral. Esta secuencia de alelos se denomina haplotipo. Un individuo diploide, por lo tanto, tendrá dos haplotipos por cada cromosoma:
 :::
@@ -112,7 +112,7 @@ print(AH) # Se observan los haplotipos de cuatro individuos.
 ```
 
 ::: {.callout-caution}
-## Genotipos en AlphaSImR
+## Genotipos en AlphaSimR
 
 Luego, la suma de los dos alelos haplotípicos da lugar al genotipo en forma de dosificación alélica. La dosificación puede ser 0, 1 o 2, donde 0 significa que no se poseen alelos derivados, 1 indica la presencia de un alelo derivado y 2 indica que ambos alelos son derivados:
 :::
@@ -159,13 +159,13 @@ DT::datatable(data = QTLsMap,
   )
 ```
 
-
+Usando estos datos (haplotipos, pedigrí y mapa genético) `AlphaSimR` crea la población fundadora:
 
 ```{r}
 #| echo: true
 #| eval: false
 #| warning: false
-#| label: Creación de la población fundadora, creación del objeto de clase SimParam (SP) e importación de efectos de QTLs.
+#| label: Creación de la población fundadora.
 
 founderPop <- importHaplo(
   haplo = marHap,
@@ -173,8 +173,26 @@ founderPop <- importHaplo(
   ped = ped,
   ploidy = 2
   )
+```
+
+Luego se crea un objeto de clase SimParam (SP) en el que se almacenarán (o definirán) los parámetros de simulación globales que se aplicarán a la población fundadora y a las generaciones sucesivas:
+
+```{r}
+#| echo: true
+#| eval: false
+#| warning: false
+#| label: Creación del objeto de clase SimParam (SP).
 
 SP <- SimParam$new(founderPop)
+```
+
+A continuación, se importa los efectos de los QTLs y se asocian al carácter (en este caso, el agregado generado a partir de la información del peso al destete simulado en el programa Simulped). También se realiza la asignación de sexos en la población:
+
+```{r}
+#| echo: true
+#| eval: false
+#| warning: false
+#| label: Importación de efectos de QTLs y asignación de sexos
 
 SP$importTrait(
   markerNames = QTLsEffects$id,
@@ -185,7 +203,13 @@ SP$importTrait(
 SP$setSexes('yes_sys')
 ```
 
+::: {.callout-important}
+## Importación de QTLs en AlphaSimR
 
+Este paso es esencial porque le dice a `AlphaSimR` cómo calcular los valores genéticos para el carácter (Agregado_PD), tomando en cuenta la información sobre los QTLs y sus efectos.
+:::
+
+Finalmente, se simulan los individuos de la población base a partir de la población fundadora creada anteriormente:
 
 ```{r}
 #| echo: true
@@ -207,7 +231,15 @@ str(basePop, max.level = 2)
 str(basePop, max.level = 2)
 ```
 
+::: {.callout-important}
+## Simulación de los individuos de la población base en AlphaSimR
+
+Como resultado se obtiene un objeto (basePop) de clase pop. Este objeto contiene la población base simulada. Los individuos de la población base recibirán genotipos a partir de los haplotipos fundadores, y respetando la estructura del pedigrí (es decir, manteniendo las relaciones de padres e hijos).
+:::
+
 #### a. Población base (o generación reciente)
+
+A continuación, mediante un histograma, se puede visualizar la distribución de los valores genéticos aditivos en la población base.
 
 ```{r}
 #| echo: false
@@ -223,18 +255,9 @@ ggplot(data = as_tibble(gv(basePop)), mapping = aes(x = Agregado_PD)) +
   theme_bw()
 ```
 
+La varianza genética aditiva de la población base es igual a ```r round(varG(basePop), digits = 2)```.
 
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la varianza genética aditiva de la población base.
-
-varG(basePop)
-```
-
-
+En `AlphaSimR` se utiliza la función `setPheno()` para simular valores fenotípicos:
 
 ```{r}
 #| echo: true
@@ -248,7 +271,7 @@ basePop <- setPheno(
   )
 ```
 
-
+A continuación se puede observar algunos de estos valores fenotípicos junto a su distribución:
 
 ```{r}
 #| echo: false
@@ -271,27 +294,13 @@ plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agreg
 print(plot_basePop)
 ```
 
+::: {.callout-caution}
+## Valores fenotípicos negativos en AlphaSimR
 
+En `AlphaSimR`, los valores fenotípicos se calculan como la suma de dos componentes: los efectos aditivos de los QTLs y el efecto ambiental. A menos que se fije un intercepto (o valor medio del carácter), los valores fenotípicos simulados puedan incluir valores negativos si ambos efectos son lo suficientemente bajos. 
+:::
 
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la media fenotípica de la población base.
-
-meanP(basePop)
-```
-
-
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la varianza fenotípica de la población base.
-
-varP(basePop)
-```
+La media de los valores fenotípicos en la población base y la varianza fenotípica son iguales a ```r round(meanP(basePop), digits = 2)``` y ```r round(varP(basePop), digits = 2)```, respectivamente.
 
 #### b. Población mejorada (una sola generación)
 
@@ -416,18 +425,7 @@ varP(gen1)
 #| label: Parámetros en población base y mejorada.
 
 tibble(
-  `Parámetro|Réplica` = c(
-    'μₚ',
-    'σ²ₐ',
-    'σ²ₚ',
-    'F',
-    'μₚ',
-    'σ²ₐ',
-    'σ²ₚ',
-    'F',
-    'ΔG',
-    'Precisión'
-    ),
+  `Parámetro|Réplica` = c('μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'ΔG', 'Precisión'),
   `Réplica 1` = c(-21.23, 324.83, 1157.24, -0.02, 23.50, 167.65, 1003.59, 44.27, 0.42, 0.001),
   `Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 47.15, 0.41, 0.001),
   `Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 47.33, 0.41, 0.001),
