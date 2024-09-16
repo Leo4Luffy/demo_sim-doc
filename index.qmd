@@ -304,13 +304,13 @@ La media de los valores fenotípicos en la población base y la varianza fenotí
 
 #### b. Población mejorada (una sola generación)
 
-
+A continuación, se seleccionan individuos (machos y hembras) en función de sus valores genéticos aditivos (gv):
 
 ```{r}
 #| echo: true
 #| eval: true
 #| warning: false
-#| label: Selección de individuos (machos y hembras) basada en valores genéticos estimados (GEBVs)
+#| label: Selección de individuos (machos y hembras) basada en valores genéticos estimados (GEBVs).
 
 Sires <- selectInd(
   pop = basePop, nInd = 150,
@@ -320,6 +320,15 @@ Dams <- selectInd(
   pop = basePop, nInd = 3000,
   use = 'gv', sex = 'F', selectTop = TRUE
   )
+```
+
+Luego se cruzan dichos individuos para generar la primera generación (gen1) de descendientes:
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Cruce de individuos seleccionados.
 
 gen1 <- randCross2(
   males = Sires, 
@@ -329,34 +338,9 @@ gen1 <- randCross2(
   )
 ```
 
+La varianza genética aditiva de la población mejorada es igual a ```r round(varG(gen1), digits = 2)```.
 
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de los valores mejorantes de la población mejorada.
-#| fig.width: 6
-#| fig.height: 6
-
-ggplot(data = as_tibble(gv(gen1)), mapping = aes(x = Agregado_PD)) +
-  geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
-  labs(title = NULL, x = 'Valores mejorantes', y = 'Frecuencia') +
-  theme_bw()
-```
-
-
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la varianza genética aditiva de la población mejorada.
-
-varG(gen1)
-```
-
-
+Y los valores fenotípicos junto y su distribución (comparada con la población base) son:
 
 ```{r}
 #| echo: true
@@ -369,8 +353,6 @@ gen1 <- setPheno(
   h2 = 0.28
   )
 ```
-
-
 
 ```{r}
 #| echo: false
@@ -387,36 +369,23 @@ tibble(
 
 plot_gen1 <- ggplot(data = as_tibble(pheno(gen1)), mapping = aes(x = Agregado_PD)) +
   geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
-  labs(title = NULL, x = 'Valores fenotípicos', y = 'Frecuencia') +
+  labs(title = 'Población mejorada', x = 'Valores fenotípicos', y = 'Frecuencia') +
   xlim(range(pheno(basePop))) +
+  theme_bw()
+
+plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = 'Población base', x = 'Valores fenotípicos', y = 'Frecuencia') +
   theme_bw()
 
 (plot_basePop) / (plot_gen1)
 ```
 
-
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la media fenotípica de la población mejorada.
-
-meanP(gen1)
-```
-
-
-
-```{r}
-#| echo: false
-#| eval: true
-#| warning: false
-#| label: Observación de la varianza fenotípica de la población mejorada.
-
-varP(gen1)
-```
+La media de los valores fenotípicos en la población mejorada y la varianza fenotípica son iguales a ```r round(meanP(gen1), digits = 2)``` y ```r round(varP(gen1), digits = 2)```, respectivamente.
 
 #### c. Parámetros de comparación en ambas poblaciones
+
+A continuación, se puede observar algunos parámetros genéticos en las diez réplicas simuladas.
 
 ```{r}
 #| echo: false
@@ -426,7 +395,7 @@ varP(gen1)
 
 tibble(
   `Parámetro|Réplica` = c('μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'ΔG', 'Precisión'),
-  `Réplica 1` = c(-21.23, 324.83, 1157.24, -0.02, 23.50, 167.65, 1003.59, 44.27, 0.42, 0.001),
+  `Réplica 1` = c(-21.23, 324.83, 1157.24, -0.02, 22.41, 175.50, 1042.84, 44.27, 0.42, 0.001),
   `Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 47.15, 0.41, 0.001),
   `Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 47.33, 0.41, 0.001),
   `Réplica 4` = c(-35.26, 463.50, 1644.34, -0.02, 18.06, 221.36, 1457.38, 54.42, 0.40, 0.0003),
@@ -457,6 +426,46 @@ tibble(
     footnote = 'Se calculó el coeficiente de consanguinidad basado en el genoma, que compara la cantidad de homocigosis observada en el genoma con lo esperado.',
     locations = cells_stub(rows = 'F'))
 ```
+
+::: {.callout-warning collapse="true"}
+## Cálculo del coeficiente de consanguinidad basado en el genoma
+
+El coeficiente de consanguinidad basado en el genoma se calculó a partir de los siguiente paso:
+
++ Paso 1. Extracción de los genotipos
+
+Los genotipos pueden extraerse a partir de `basePopGeno <- pullSegSiteGeno(basePop)`.
+
++ Paso 2. Cálculo de la frecuencia alélica en cada locus
+
+El objetivo consiste en obtener la frecuencia del alelo derivado en cada locus dividiendo la media de los genotipos entre 2:
+
+$$f = \frac{\sum_{i=1}^{n} g_{i}}{2n}$$
+
+donde $f$ es la frecuencia del alelo derivado, $g_{i}$ es el valor del genotipo para el marcador $i$ (0, 1, o 2) y $n$ es el número de individuos.
+
++ Paso 3. Cálculo de la homocigosis esperada por locus
+
+El objetivo consiste en determinar la probabilidad de que ambos alelos en un locus sean iguales (homocigóticos):
+
+$$H_{esp} = f^{2} + (1 - f)^{2}$$
+
+donde $H_{esp}$ es la homocigosis esperada para un locus y $f$ es la frecuencia alélica.
+
++ Paso 4. Cálculo de la homocigosis observada por individuo
+
+Aquí se cuenta cuántos loci son homocigotos (genotipo 0 o 2) para cada individuo.
+
++ Paso 5. Cálculo del coeficiente de consanguinidad
+
+Este parámetro mide el exceso de homocigosis en relación con lo esperado por azar. Si $F > 0$, el individuo es más consanguíneo de lo esperado; si $F < 0$, hay menos homocigosis de lo esperado. La formula es:
+
+$$F = 1 - \frac{H_{obs}}{H_{esp}}$$
+
+donde $F$ es el coeficiente de consanguinidad, $H_{obs}$ es la homocigosis observada por individuo y $H_{esp}$ es la homocigosis esperada por locus.
+
+Luego se calcula la consanguinidad promedio de la población como la media de los coeficientes individuales.
+:::
 
 <!--
 ```{webr-r}
