@@ -206,7 +206,7 @@ SP$setSexes('yes_sys')
 ::: {.callout-important}
 ## Importación de QTLs en AlphaSimR
 
-Este paso es esencial porque le dice a `AlphaSimR` cómo calcular los valores genéticos para el carácter (Agregado_PD), tomando en cuenta la información sobre los QTLs y sus efectos.
+Este paso es escencial porque le dice a `AlphaSimR` cómo calcular los valores genéticos para el carácter (Agregado_PD), tomando en cuenta la información sobre los QTLs y sus efectos.
 :::
 
 Finalmente, se simulan los individuos de la población base a partir de la población fundadora creada anteriormente:
@@ -340,7 +340,7 @@ gen1 <- randCross2(
 
 La varianza genética aditiva de la población mejorada es igual a ```r round(varG(gen1), digits = 2)```.
 
-Y los valores fenotípicos junto y su distribución (comparada con la población base) son:
+Y los valores fenotípicos junto a su distribución (comparada con la población base) son:
 
 ```{r}
 #| echo: true
