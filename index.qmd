@@ -9,7 +9,7 @@ filters:
 #| eval: true
 #| warning: false
 
-pacman::p_load(tibble, gt, dplyr, AlphaSimR, here, ggplot2, patchwork)
+pacman::p_load(tibble, gt, dplyr, AlphaSimR, here, tidyverse, patchwork)
 ```
 
 ## Programa Simulped
@@ -466,6 +466,61 @@ donde $F$ es el coeficiente de consanguinidad, $H_{obs}$ es la homocigosis obser
 
 Luego se calcula la consanguinidad promedio de la población como la media de los coeficientes individuales.
 :::
+
+## Paquete de `R` AlphaSimR y programa BLUPF90
+
+Al usar `str(basePop, max.level = 2)`, como se hizo anteriormente, se observa que el _slot_ _ebv_ en el objeto de clase Pop está vacío. Este está destinado para almacenar los valores mejorantes (EBVs) de los individuos en una población. Una vez calculados los EBVs de forma tradicional mediante BLUPF90, se obtienen a continuación estas estimaciones:
+
+```{r}
+#| echo: true
+#| eval: false
+#| label: EBVs obtenidos de forma tracional con BLUPF90 1.
+
+ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'), col_names = FALSE, skip = 1) |>
+  filter(X2 == 2) # <1>
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: EBVs obtenidos de forma tracional con BLUPF90 2.
+
+ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'), col_names = FALSE, skip = 1) |>
+  filter(X2 == 2) |>
+  select(X4) |>
+  rename(ebv = X4) |>
+  dplyr::mutate(id = row_number()) |>
+  relocate(id, .before = ebv)
+```
+
+1. Se deja los valores de fila que corresponde a los EBVs obtenidos de forma tradicional mediante BLUPF90.
+
+A continuación, y en este orden, se garantiza que las IDs de los individuos en el objeto ebv_blup estén en el mismo orden que las IDs en basePop y se ordenan los EBVs en base al orden de IDs de basePop. Luego, se asignan los EBVs al _slot_ _ebv_ de la población base en `AlphaSimR`:
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Almacenamiento de los EBVs al slot de AlphaSimR 1.
+
+ebv_orden <- match(basePop@id, ebv_blup$id)
+
+ebv_orden_2 <- ebv_blup$ebv[ebv_orden]
+
+basePop@ebv <- matrix(ebv_orden_2, ncol = 1)
+```
+
+A continuación, se verifica la asignación de los EBVs:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Almacenamiento de los EBVs al slot de AlphaSimR 2.
+
+str(basePop, max.level = 2)
+```
 
 <!--
 ```{webr-r}
