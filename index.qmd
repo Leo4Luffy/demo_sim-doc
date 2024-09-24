@@ -57,7 +57,7 @@ founderPop <- readRDS(here(file = 'AlphaSimR/Dato/replica_1/founderPop.rds'))
 
 SP <- SimParam$new(founderPop)
 
-## 2. Luego se importan los efectos de los QTLs y se asigna el sexo a los individuos ----
+## 2. Luego se importan los efectos de los QTLs ----
 
 QTLsEffects <- read.table(here(file = 'AlphaSimR/Dato/replica_1/qtlmap.txt'))
 colnames(QTLsEffects) <- c('id', 'chromosome', 'position', 'effect')
@@ -69,10 +69,6 @@ SP$importTrait(
   addEff = QTLsEffects$effect,
   name = 'Agregado_PD'
   )
-
-#SP$traits
-
-SP$setSexes('yes_sys')
 
 ## 3. Una vez establecido los parámetros de simulación globales y definido el carácter, se simula (o crea) a continuación los individuos de la población base a partir de los haplotipos fundadores ----
 
@@ -186,21 +182,19 @@ Luego se crea un objeto de clase SimParam (SP) en el que se almacenarán (o defi
 SP <- SimParam$new(founderPop)
 ```
 
-A continuación, se importa los efectos de los QTLs y se asocian al carácter (en este caso, el agregado generado a partir de la información del peso al destete simulado en el programa Simulped). También se realiza la asignación de sexos en la población:
+A continuación, se importa los efectos de los QTLs y se asocian al carácter (en este caso, el agregado generado a partir de la información del peso al destete simulado en el programa Simulped):
 
 ```{r}
 #| echo: true
 #| eval: false
 #| warning: false
-#| label: Importación de efectos de QTLs y asignación de sexos
+#| label: Importación de efectos de QTLs.
 
 SP$importTrait(
   markerNames = QTLsEffects$id,
   addEff = QTLsEffects$effect,
   name = 'Agregado_PD'
   )
-
-SP$setSexes('yes_sys')
 ```
 
 ::: {.callout-important}
@@ -239,7 +233,7 @@ Como resultado se obtiene un objeto (basePop) de clase pop. Este objeto contiene
 
 #### a. Población base (o generación reciente)
 
-A continuación, mediante un histograma, se puede visualizar la distribución de los valores genéticos aditivos en la población base.
+A continuación, mediante un histograma, se puede visualizar la distribución de los valores genéticos verdaderos (TBVs) en la población base:
 
 ```{r}
 #| echo: false
@@ -257,21 +251,127 @@ ggplot(data = as_tibble(gv(basePop)), mapping = aes(x = Agregado_PD)) +
 
 La varianza genética aditiva de la población base es igual a ```r round(varG(basePop), digits = 2)```.
 
-En `AlphaSimR` se utiliza la función `setPheno()` para simular valores fenotípicos:
+Una de las salidas dadas por el programa Simulped son los datos (denominado como __datos_sim.txt__). Este archivo contiene como variables la edad del individuo, su sexo, la edad de la madre, el grupo de comparación, la identificación del individuo y el fenotipo (el agregado). A continuación, se asignan las variables sexo y fenotipo a los slot @sex y @pheno, respectivamente. Luego, el resto de variables se asignan al slot @misc que puede usarse para almacenar información adicional.
+
+Primero se realiza la asignación de sexos en la población base:
 
 ```{r}
-#| echo: true
+#| echo: false
 #| eval: true
 #| warning: false
-#| label: Observación de la valores fenotípicos de la población base 1.
+#| label: Asignación de sexos 1.
 
-basePop <- setPheno(
-  basePop,
-  h2 = 0.28
-  )
+ID_Sex <- read_delim(here(file = 'Simulped/IDSexDstt.txt'), col_names = FALSE, delim = ' ') |>
+  rename(
+    id = X1,
+    sex = X2
+    ) |>
+  dplyr::mutate(sex = case_when(
+    sex == 1 ~ 'M',
+    sex == 2 ~ 'H')
+    )
+
+sex_orden <- match(basePop@id, ID_Sex$id)
+
+sex_orden_2 <- ID_Sex$sex[sex_orden]
+
+basePop@sex <- sex_orden_2
+
+str(basePop, max.level = 2)
 ```
 
-A continuación se puede observar algunos de estos valores fenotípicos junto a su distribución:
+Se verifica la asignación correcta de sexos comprobando que los individuos 970 y 978 corresponden a machos:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Asignación de sexos 2.
+
+sex <- basePop@sex
+print(sex[968:978])
+```
+
+Luego se realiza la asignación de fenotipos en la población base:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Asignación de fenotipos 1.
+
+feno <- read_table(here(file = 'AlphaSimR/Dato/replica_1/datos_sim.txt'), col_names = FALSE) |>
+  select(c(X5, X6)) |>
+  rename(
+    id = X5,
+    pheno = X6
+    )
+
+feno_orden <- match(basePop@id, feno$id)
+
+feno_orden_2 <- feno$pheno[feno_orden]
+
+basePop@pheno <- matrix(feno_orden_2, ncol = 1)
+
+str(basePop, max.level = 2)
+```
+
+Se verifica la asignación correcta de fenotipos comprobando que los individuos 5313 y 5314 tienen esta información, mientras que los individuos anteriores a ellos no:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Asignación de fenotipos 2.
+
+basePop@pheno[5311:5314]
+```
+
+Por último, se realiza la asignación del resto de variables en la población base:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Asignación de efectos fijos y de la covariable 1.
+
+datos_sim <- read_table(here(file = 'AlphaSimR/Dato/replica_1/datos_sim.txt'), col_names = FALSE) |>
+  rename(
+    edad = X1,
+    edad_madre = X3,
+    grupo_comparacion = X4,
+    id = X5
+    ) |>
+  select(-c(X2, X6, X7)) |> # Se elimina la columna de sexo, de fenotipo y de NAs.
+  arrange(id)
+
+datos_orden <- match(basePop@id, datos_sim$id) # Se garantiza que las IDs en datos_sim estén en el mismo orden que las IDs en basePop.
+
+datos_orden_2 <- datos_sim[datos_orden, ] # Se reorganizan los datos en función de basePop@id para garantizar la consistencia.
+
+for (i in seq_len(nrow(datos_orden_2))) {
+  basePop@misc[[i]] <- list(
+    edad_individuo = datos_orden_2$edad[i],
+    edad_madre = datos_orden_2$edad_madre[i],
+    grupo_comparacion = datos_orden_2$grupo_comparacion[i]
+    )
+  }
+
+str(basePop, max.level = 2)
+```
+
+Se verifica la asignación correcta de variables (efectos fijos y covariable) en los individuos 5313 y 5314:
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Asignación de efectos fijos y de la covariable 2.
+
+str(basePop@misc[5311:5314]) # Se observan estos individuos para confirmar.
+```
+
+A continuación se puede observar algunos de los valores fenotípicos junto a su distribución:
 
 ```{r}
 #| echo: false
@@ -284,9 +384,10 @@ A continuación se puede observar algunos de estos valores fenotípicos junto a 
 tibble(
   ID = basePop@id,
   Fenotipos = pheno(basePop)[, 1]
-  )
+  ) |> 
+  slice(5309:5318)
 
-plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agregado_PD)) +
+plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = V1)) +
   geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
   labs(title = NULL, x = 'Valores fenotípicos', y = 'Frecuencia') +
   theme_bw()
@@ -294,23 +395,17 @@ plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agreg
 print(plot_basePop)
 ```
 
-::: {.callout-caution}
-## Valores fenotípicos negativos en AlphaSimR
-
-En `AlphaSimR`, los valores fenotípicos se calculan como la suma de dos componentes: los efectos aditivos de los QTLs y el efecto ambiental. A menos que se fije un intercepto (o valor medio del carácter), los valores fenotípicos simulados puedan incluir valores negativos si ambos efectos son lo suficientemente bajos. 
-:::
-
-La media de los valores fenotípicos en la población base y la varianza fenotípica son iguales a ```r round(meanP(basePop), digits = 2)``` y ```r round(varP(basePop), digits = 2)```, respectivamente.
+La media de los valores fenotípicos en la población base y la varianza fenotípica son iguales a ```r round(mean(basePop@pheno[, 1], na.rm = TRUE), digits = 2)``` y ```r round(var(basePop@pheno[, 1], na.rm = TRUE), digits = 2)```, respectivamente.
 
 #### b. Población mejorada (una sola generación)
 
-A continuación, se seleccionan individuos (machos y hembras) en función de sus valores genéticos aditivos (gv):
+A continuación, se seleccionan individuos (machos y hembras) en función de sus TBVs:
 
 ```{r}
 #| echo: true
 #| eval: true
 #| warning: false
-#| label: Selección de individuos (machos y hembras) basada en valores genéticos estimados (GEBVs).
+#| label: Selección de individuos (machos y hembras) basada en valores genéticos verdaderos (TBVs).
 
 Sires <- selectInd(
   pop = basePop, nInd = 150,
@@ -340,7 +435,7 @@ gen1 <- randCross2(
 
 La varianza genética aditiva de la población mejorada es igual a ```r round(varG(gen1), digits = 2)```.
 
-Y los valores fenotípicos junto a su distribución (comparada con la población base) son:
+En `AlphaSimR` se utiliza la función `setPheno()` para simular valores fenotípicos:
 
 ```{r}
 #| echo: true
@@ -354,6 +449,14 @@ gen1 <- setPheno(
   )
 ```
 
+::: {.callout-caution}
+## Valores fenotípicos en AlphaSimR
+
+En `AlphaSimR`, los valores fenotípicos se calculan como la suma de dos componentes: los efectos aditivos de los QTLs y el efecto ambiental. A menos que se fije un intercepto (o valor medio del carácter), los valores fenotípicos simulados puedan incluir valores negativos si ambos efectos son lo suficientemente bajos. 
+:::
+
+Los valores fenotípicos de la población mejorada junto a su distribución (comparada con la población base) son:
+
 ```{r}
 #| echo: false
 #| eval: true
@@ -362,20 +465,23 @@ gen1 <- setPheno(
 #| fig.width: 6
 #| fig.height: 6
 
+gen1@pheno <- gen1@pheno + 1000 # Se suma un valor de 1000 (media o intercepto) a todos los fenotipos después de haberlos simulado, para así evitar valores fenotípicos negativos.
+
 tibble(
   ID = gen1@id,
   Fenotipos = pheno(gen1)[, 1]
   )
 
+plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = V1)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = 'Población base', x = 'Valores fenotípicos', y = 'Frecuencia') +
+  xlim(850, 1150) +
+  theme_bw()
+
 plot_gen1 <- ggplot(data = as_tibble(pheno(gen1)), mapping = aes(x = Agregado_PD)) +
   geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
   labs(title = 'Población mejorada', x = 'Valores fenotípicos', y = 'Frecuencia') +
-  xlim(range(pheno(basePop))) +
-  theme_bw()
-
-plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = Agregado_PD)) +
-  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
-  labs(title = 'Población base', x = 'Valores fenotípicos', y = 'Frecuencia') +
+  xlim(850, 1150) +
   theme_bw()
 
 (plot_basePop) / (plot_gen1)
@@ -469,7 +575,7 @@ Luego se calcula la consanguinidad promedio de la población como la media de lo
 
 ## Paquete de `R` AlphaSimR y programa BLUPF90
 
-Al usar `str(basePop, max.level = 2)`, como se hizo anteriormente, se observa que el _slot_ _ebv_ en el objeto de clase Pop está vacío. Este está destinado para almacenar los valores mejorantes (EBVs) de los individuos en una población. Una vez calculados los EBVs de forma tradicional mediante BLUPF90, se obtienen a continuación estas estimaciones:
+Al usar `str(basePop, max.level = 2)`, como se hizo anteriormente, se observa que el slot @ebv en el objeto de clase Pop está vacío. Este está destinado para almacenar los valores genéticos estimados (EBVs) de los individuos en una población. Una vez calculados los EBVs de forma tradicional mediante BLUPF90, se obtienen a continuación estas estimaciones:
 
 ```{r}
 #| echo: true
@@ -487,7 +593,7 @@ ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'
 #| label: EBVs obtenidos de forma tracional con BLUPF90 2.
 
 ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'), col_names = FALSE, skip = 1) |>
-  filter(X2 == 2) |>
+  filter(X2 == 5) |>
   select(X4) |>
   rename(ebv = X4) |>
   dplyr::mutate(id = row_number()) |>
@@ -514,13 +620,42 @@ basePop@ebv <- matrix(ebv_orden_2, ncol = 1)
 A continuación, se verifica la asignación de los EBVs:
 
 ```{r}
-#| echo: false
+#| echo: true
 #| eval: true
 #| warning: false
 #| label: Almacenamiento de los EBVs al slot de AlphaSimR 2.
 
 str(basePop, max.level = 2)
 ```
+
+#### a. Población base (o generación reciente)
+
+A continuación, mediante un histograma, se puede visualizar la distribución de los EBVs en la población base.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Se extraen los EBVs del slot 'ebv' del objeto basePop.
+
+ebv_blupf90 <- basePop@ebv
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de los EBVs de la población base.
+#| fig.width: 6
+#| fig.height: 6
+
+ggplot(data = as_tibble(ebv_blupf90), mapping = aes(x = V1)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = NULL, x = 'Valores mejorantes', y = 'Frecuencia') +
+  theme_bw()
+```
+
+La varianza genética aditiva de la población base es igual a ```r round(var(ebv_blupf90), digits = 2)```.
 
 <!--
 ```{webr-r}
