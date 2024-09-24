@@ -447,6 +447,8 @@ gen1 <- setPheno(
   gen1,
   h2 = 0.28
   )
+
+gen1@pheno <- gen1@pheno + 1000 # Se suma un valor de 1000 (media o intercepto) a todos los fenotipos después de haberlos simulado.
 ```
 
 ::: {.callout-caution}
@@ -464,8 +466,6 @@ Los valores fenotípicos de la población mejorada junto a su distribución (com
 #| label: Observación de la valores fenotípicos de la población mejorada 2.
 #| fig.width: 6
 #| fig.height: 6
-
-gen1@pheno <- gen1@pheno + 1000 # Se suma un valor de 1000 (media o intercepto) a todos los fenotipos después de haberlos simulado, para así evitar valores fenotípicos negativos.
 
 tibble(
   ID = gen1@id,
@@ -501,16 +501,16 @@ A continuación, se puede observar algunos parámetros genéticos en las diez r�
 
 tibble(
   `Parámetro|Réplica` = c('μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'ΔG', 'Precisión'),
-  `Réplica 1` = c(-21.23, 324.83, 1157.24, -0.02, 22.41, 175.50, 1042.84, 0.001, 44.27, 0.42),
-  `Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 0.001, 47.15, 0.41),
-  `Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 0.001, 47.33, 0.41),
-  `Réplica 4` = c(-35.26, 463.50, 1644.34, -0.02, 18.06, 221.36, 1457.38, 0.0003, 54.42, 0.40),
-  `Réplica 5` = c(23.80, 417.07, 1478.78, -0.02, 72.48, 221.50, 1317.98, 0.001, 50.16, 0.43),
-  `Réplica 6` = c(22.38, 465.94, 1672.25, -0.02, 75.72, 226.46, 1456.74, 0.001, 53.77, 0.40),
-  `Réplica 7` = c(-8.23, 534.73, 1910.08, -0.02, 47.55, 275.29, 1640.63, 0.001, 55.87, 0.38),
-  `Réplica 8` = c(-24.75, 290.86, 1035.77, -0.02, 20.02, 171.85, 902.35, 0.001, 43.64, 0.43),
-  `Réplica 9` = c(-10.17, 316.38, 1125.35, -0.02, 34.05, 172.43, 1007.28, 0.001, 44.53, 0.42),
-  `Réplica 10` = c(-19.43, 392.42, 1411.05, -0.02, 29.33, 200.64, 1184.29, 0.001, 48.16, 0.42)
+  `Réplica 1` = c(1008.32, 324.83, 1632.71, -0.02, 1027.93, 170.11, 978.83, 0.001, 44.27, 0.42),
+  #`Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 0.001, 47.15, 0.41),
+  #`Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 0.001, 47.33, 0.41),
+  #`Réplica 4` = c(-35.26, 463.50, 1644.34, -0.02, 18.06, 221.36, 1457.38, 0.0003, 54.42, 0.40),
+  #`Réplica 5` = c(23.80, 417.07, 1478.78, -0.02, 72.48, 221.50, 1317.98, 0.001, 50.16, 0.43),
+  #`Réplica 6` = c(22.38, 465.94, 1672.25, -0.02, 75.72, 226.46, 1456.74, 0.001, 53.77, 0.40),
+  #`Réplica 7` = c(-8.23, 534.73, 1910.08, -0.02, 47.55, 275.29, 1640.63, 0.001, 55.87, 0.38),
+  #`Réplica 8` = c(-24.75, 290.86, 1035.77, -0.02, 20.02, 171.85, 902.35, 0.001, 43.64, 0.43),
+  #`Réplica 9` = c(-10.17, 316.38, 1125.35, -0.02, 34.05, 172.43, 1007.28, 0.001, 44.53, 0.42),
+  #`Réplica 10` = c(-19.43, 392.42, 1411.05, -0.02, 29.33, 200.64, 1184.29, 0.001, 48.16, 0.42)
   ) |>
   gt(rowname_col = 'Parámetro|Réplica') |>
   opt_table_lines() |>
@@ -583,7 +583,7 @@ Al usar `str(basePop, max.level = 2)`, como se hizo anteriormente, se observa qu
 #| label: EBVs obtenidos de forma tracional con BLUPF90 1.
 
 ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'), col_names = FALSE, skip = 1) |>
-  filter(X2 == 2) # <1>
+  filter(X2 == 5) # <1>
 ```
 
 ```{r}
@@ -602,7 +602,7 @@ ebv_blup <- read_table(here(file = 'AlphaSimR', 'Dato', 'replica_1', 'solutions'
 
 1. Se deja los valores de fila que corresponde a los EBVs obtenidos de forma tradicional mediante BLUPF90.
 
-A continuación, y en este orden, se garantiza que las IDs de los individuos en el objeto ebv_blup estén en el mismo orden que las IDs en basePop y se ordenan los EBVs en base al orden de IDs de basePop. Luego, se asignan los EBVs al _slot_ _ebv_ de la población base en `AlphaSimR`:
+A continuación, y en este orden, se garantiza que las IDs de los individuos en el objeto ebv_blup estén en el mismo orden que las IDs en basePop y se ordenan los EBVs en base al orden de IDs de basePop. Luego, se asignan los EBVs al slot @ebv de la población base en `AlphaSimR`:
 
 ```{r}
 #| echo: true
@@ -655,7 +655,135 @@ ggplot(data = as_tibble(ebv_blupf90), mapping = aes(x = V1)) +
   theme_bw()
 ```
 
-La varianza genética aditiva de la población base es igual a ```r round(var(ebv_blupf90), digits = 2)```.
+La varianza genética aditiva de la población base es igual a ```r round(var(ebv_blupf90), digits = 2)```. La media de los valores fenotípicos y la varianza fenotípica siguen siendo la misma a la presentada anteriormente, esto es, ```r round(mean(basePop@pheno[, 1], na.rm = TRUE), digits = 2)``` y ```r round(var(basePop@pheno[, 1], na.rm = TRUE), digits = 2)```, respectivamente.
+
+#### b. Población mejorada (una sola generación)
+
+A continuación, se seleccionan individuos (machos y hembras) en función de sus EBVs:
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Selección de individuos (machos y hembras) basada en valores genéticos estimados (EBVs).
+
+Sires_blup <- selectInd(
+  pop = basePop, nInd = 150,
+  use = 'ebv', sex = 'M', selectTop = TRUE
+  )
+Dams_blup <- selectInd(
+  pop = basePop, nInd = 3000,
+  use = 'ebv', sex = 'F', selectTop = TRUE
+  )
+```
+
+Luego se cruzan dichos individuos para generar la primera generación (gen1_blup) de descendientes:
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Cruce de individuos seleccionados mediante EBVs.
+
+gen1_blup <- randCross2(
+  males = Sires_blup, 
+  females = Dams_blup,
+  nCrosses = 3000, 
+  nProgeny = 1
+  )
+```
+
+A continuación, se utiliza la función `setPheno()` de `AlphaSimR` para simular los valores fenotípicos:
+
+```{r}
+#| echo: true
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población mejorada mediante EBVs 1.
+
+gen1_blup <- setPheno(
+  gen1_blup,
+  h2 = 0.28
+  )
+
+gen1_blup@pheno <- gen1_blup@pheno + 1000
+```
+
+A continuación se presentan los valores fenotípicos de la población mejorada junto a su distribución (comparada con la población base):
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Observación de la valores fenotípicos de la población mejorada mediante EBVs 2.
+#| fig.width: 6
+#| fig.height: 6
+
+tibble(
+  ID = gen1_blup@id,
+  Fenotipos = pheno(gen1_blup)[, 1]
+  )
+
+plot_basePop <- ggplot(data = as_tibble(pheno(basePop)), mapping = aes(x = V1)) +
+  geom_histogram(fill = 'orange', color = 'orange', alpha = 0.2) +
+  labs(title = 'Población base', x = 'Valores fenotípicos', y = 'Frecuencia') +
+  xlim(850, 1150) +
+  theme_bw()
+
+plot_gen1_blup <- ggplot(data = as_tibble(pheno(gen1_blup)), mapping = aes(x = Agregado_PD)) +
+  geom_histogram(fill = 'green', color = 'green', alpha = 0.2) +
+  labs(title = 'Población mejorada', x = 'Valores fenotípicos', y = 'Frecuencia') +
+  xlim(850, 1150) +
+  theme_bw()
+
+(plot_basePop) / (plot_gen1_blup)
+```
+
+La media de los valores fenotípicos en la población mejorada y la varianza fenotípica son iguales a ```r round(meanP(gen1_blup), digits = 2)``` y ```r round(varP(gen1_blup), digits = 2)```, respectivamente.
+
+#### c. Parámetros de comparación en ambas poblaciones
+
+A continuación, se puede observar algunos parámetros genéticos en las diez réplicas simuladas.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: Parámetros en población base y mejorada mediante EBVs.
+
+tibble(
+  `Parámetro|Réplica` = c('μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'μₚ', 'σ²ₐ', 'σ²ₚ', 'F', 'ΔG', 'Precisión'),
+  `Réplica 1` = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
+  #`Réplica 2` = c(21.46, 368.89, 1325.58, -0.02, 69.02, 159.97, 1129.03, 0.001, 47.15, 0.41),
+  #`Réplica 3` = c(-6.87, 349.98, 1260.77, -0.02, 40.19, 183.42, 1093.02, 0.001, 47.33, 0.41),
+  #`Réplica 4` = c(-35.26, 463.50, 1644.34, -0.02, 18.06, 221.36, 1457.38, 0.0003, 54.42, 0.40),
+  #`Réplica 5` = c(23.80, 417.07, 1478.78, -0.02, 72.48, 221.50, 1317.98, 0.001, 50.16, 0.43),
+  #`Réplica 6` = c(22.38, 465.94, 1672.25, -0.02, 75.72, 226.46, 1456.74, 0.001, 53.77, 0.40),
+  #`Réplica 7` = c(-8.23, 534.73, 1910.08, -0.02, 47.55, 275.29, 1640.63, 0.001, 55.87, 0.38),
+  #`Réplica 8` = c(-24.75, 290.86, 1035.77, -0.02, 20.02, 171.85, 902.35, 0.001, 43.64, 0.43),
+  #`Réplica 9` = c(-10.17, 316.38, 1125.35, -0.02, 34.05, 172.43, 1007.28, 0.001, 44.53, 0.42),
+  #`Réplica 10` = c(-19.43, 392.42, 1411.05, -0.02, 29.33, 200.64, 1184.29, 0.001, 48.16, 0.42)
+  ) |>
+  gt(rowname_col = 'Parámetro|Réplica') |>
+  opt_table_lines() |>
+  tab_row_group(
+    label = 'Población mejorada',
+    rows = c(5:10)
+    ) |>
+  tab_row_group(
+    label = 'Población base',
+    rows = c(1:4)
+    ) |>
+  tab_footnote(
+    footnote = 'Se calculó el progreso genético como la diferencia en la media de los valores genéticos entre la población base y la mejorada.',
+    locations = cells_stub(rows = 'ΔG')) |>
+  tab_footnote(
+    footnote = 'Se calculó la precisión como la correlación entre los valores genéticos y los valores fenotípicos.',
+    locations = cells_stub(rows = 'Precisión')) |>
+  tab_footnote(
+    footnote = 'Se calculó el coeficiente de consanguinidad basado en el genoma, que compara la cantidad de homocigosis observada en el genoma con lo esperado.',
+    locations = cells_stub(rows = 'F'))
+```
 
 <!--
 ```{webr-r}
